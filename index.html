@@ -1,9 +1,94 @@
+<!DOCTYPE html>
 <html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku Lite ES5</title>
+<style>
+body{font-family:Arial,sans-serif;text-align:center;background:#fff;color:#000;margin:8px;}
+h2{margin:4px 0;}
+#info{font-weight:bold;min-height:22px;margin:8px;}
+button,select{padding:6px 8px;font-size:14px;border:1px solid #000;background:#f0f0f0;}
+#controls{margin:10px;}
+#controls button{margin:2px;}
+#popupOverlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#fff;opacity:0.95;z-index:1000;}
+#popup{display:none;position:fixed;top:20%;left:50%;margin-left:-130px;width:260px;background:#fff;border:3px solid #000;padding:10px;z-index:1001;text-align:center;}
+#popup button{width:70px;height:48px;margin:4px;font-size:20px;}
+#popup .smallBtn{font-size:14px;height:40px;}
+</style>
+</head>
 <body>
-Hello
+<h2>Sudoku Lite ES5</h2>
+<div>Difficulty: <select id="difficulty"><option>easy</option><option selected>medium</option><option>hard</option></select></div>
+<div id="controls">
+<button onclick="loadLivePuzzle()">LIVE</button>
+<button onclick="loadLocalPuzzle()">LOCAL</button>
+<button onclick="resetPuzzle()">Reset</button>
+<button onclick="solvePuzzle()">Solve</button>
+</div>
+<div id="info"></div>
+<div id="board"></div>
+<div id="popupOverlay" onclick="hidePopup()"></div>
+<div id="popup"></div>
 <script>
-async function test() {}
-document.body.innerHTML += "<br>JS OK";
+var easy=[
+'530070000600195000098000060800060003400803001700020006060000280000419005000080079',
+'000260701680070090190004500820100040004602900050003028009300074040050036703018000',
+'300200000000107000706030500070009080900020004010800050009040301000702000000008006',
+'200080300060070084030500209000105408000000000402706000301007040720040060004010003',
+'000000907000420180000705026100904000050000040000507009920108000034059000507000000',
+'030050040008010500460000012070502080000603000040109030250000098001020600080060020',
+'020810740700003100090002805009040087400208003160030200302700060005600008076051090',
+'100920000524010000000000070050008102000000000402700090060000000000030945000071006',
+'043080250600000000000001094900004070000608000010200003820500000000000005034090710',
+'480006902002008001900370060840010200003704100001060049020085007700900600609200018'];
+var medium=[
+'000900002050123400030000160908000000070000090000000205091000050007439020400007000',
+'001900003900700160030005007050000009004302600200000070600100030042007006500006800',
+'000075400000000008080190000300001060000000034000068170204000603900000020530200000',
+'300000000005009000200504000020000700160000058704310600000890100000067080000005437',
+'000000080800701040040020030374000900000030000005000321090060010050208007010000000',
+'080020000040500320020309046600090004000640000900070003490106050051007080000030090',
+'005000006070009020000600108006080400040000030001090200304001000090300070700000500',
+'200170603050000100000006079000040700000801000009030000310400000007000040406052001',
+'000000000009805100051907420290401065000000000140508093026709580005103600000000000',
+'000030000080009120500001000030000507000706000106000030000600004097800050000040000'];
+var hard=[
+'800000000003600000070090200050007000000045700000100030001000068008500010090000400',
+'100007090030020008009600500005300900010080002600004000300000010040000007007000300',
+'000900800128006400070800060800430007500000009600079008090004010003600284001007000',
+'005300000800000020070010500400005300010070006003200080060500009004000030000009700',
+'030000080009000500007509200700105008020090030900402001004207100002000800050000040',
+'000000010400000000020000000000050407008000300001090000300400200050100000000806000',
+'000000907000420180000705026100904000050000040000507009920108000034059000507000000',
+'000075400000000008080190000300001060000000034000068170204000603900000020530200000',
+'300000000005009000200504000020000700160000058704310600000890100000067080000005437',
+'080000000000000430000800000000050200000603000004090000000001000027000000000000040'];
+var pools={easy:easy,medium:medium,hard:hard};
+var idx={easy:0,medium:0,hard:0};
+var board=[],initialBoard=[],solutionBoard=[],selectedCell=null;
+function clone(g){return JSON.parse(JSON.stringify(g));}
+function diff(){return document.getElementById('difficulty').value;}
+function setInfo(t){document.getElementById('info').innerHTML=t;}
+function strToGrid(s){var g=[],i=0,r,c;for(r=0;r<9;r++){g[r]=[];for(c=0;c<9;c++){g[r][c]=parseInt(s.charAt(i),10);i++;}}return g;}
+function findEmpty(g){var r,c;for(r=0;r<9;r++){for(c=0;c<9;c++){if(g[r][c]===0)return[r,c];}}return null;}
+function safe(g,r,c,n){var i,br,bc,rr,cc;for(i=0;i<9;i++){if(g[r][i]===n||g[i][c]===n)return false;}br=Math.floor(r/3)*3;bc=Math.floor(c/3)*3;for(rr=br;rr<br+3;rr++){for(cc=bc;cc<bc+3;cc++){if(g[rr][cc]===n)return false;}}return true;}
+function solve(g){var e=findEmpty(g),n;if(!e)return true;for(n=1;n<=9;n++){if(safe(g,e[0],e[1],n)){g[e[0]][e[1]]=n;if(solve(g))return true;g[e[0]][e[1]]=0;}}return false;}
+function loadGrid(g,msg){board=clone(g);initialBoard=clone(g);solutionBoard=clone(g);solve(solutionBoard);selectedCell=null;draw();setInfo(msg);}
+function loadLocalPuzzle(){var d=diff();var arr=pools[d];var i=idx[d]%arr.length;idx[d]++;loadGrid(strToGrid(arr[i]),d+' local puzzle');}
+function loadLivePuzzle(){var d=diff();setInfo('Fetching '+d+' online puzzle...');var xhr=new XMLHttpRequest();xhr.onreadystatechange=function(){if(xhr.readyState===4){if(xhr.status===200){try{var data=JSON.parse(xhr.responseText);loadGrid(data.newboard.grids[0].value,d+' online puzzle');}catch(e){loadLocalPuzzle();}}else{loadLocalPuzzle();}}};xhr.open('GET','https://sudoku-api.vercel.app/api/dosuku',true);xhr.send();}
+function fixed(r,c){return initialBoard[r][c]!==0;}
+function conflict(r,c){var v=board[r][c],i,br,bc,rr,cc;if(!v)return false;for(i=0;i<9;i++){if(i!==c&&board[r][i]===v)return true;if(i!==r&&board[i][c]===v)return true;}br=Math.floor(r/3)*3;bc=Math.floor(c/3)*3;for(rr=br;rr<br+3;rr++){for(cc=bc;cc<bc+3;cc++){if((rr!==r||cc!==c)&&board[rr][cc]===v)return true;}}return false;}
+function draw(){var html='<table border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:0 auto;border:3px solid black;">',r,c,v,bg;for(r=0;r<9;r++){html+='<tr>';for(c=0;c<9;c++){v=board[r][c];bg='#fff';if(fixed(r,c))bg='#efefef';if(conflict(r,c))bg='#d0d0d0';html+='<td onclick="cellClick('+r+','+c+')" style="width:32px;height:32px;text-align:center;font-size:20px;font-weight:bold;background:'+bg+';';if(c===2||c===5)html+='border-right:3px solid black;';if(r===2||r===5)html+='border-bottom:3px solid black;';html+='">'+(v?v:'&nbsp;')+'</td>';}html+='</tr>';}html+='</table>';document.getElementById('board').innerHTML=html;}
+function cellClick(r,c){if(fixed(r,c))return;selectedCell={r:r,c:c};showPopup();}
+function showPopup(){var p=document.getElementById('popup');p.innerHTML='';var i,btn;for(i=1;i<=9;i++){btn=document.createElement('button');btn.innerHTML=i;btn.onclick=(function(n){return function(){setNum(n);};})(i);p.appendChild(btn);}btn=document.createElement('button');btn.className='smallBtn';btn.innerHTML='Clr';btn.onclick=function(){setNum(0);};p.appendChild(btn);btn=document.createElement('button');btn.className='smallBtn';btn.innerHTML='X';btn.onclick=hidePopup;p.appendChild(btn);btn=document.createElement('button');btn.className='smallBtn';btn.innerHTML='?!';btn.onclick=hintCell;p.appendChild(btn);document.getElementById('popupOverlay').style.display='block';p.style.display='block';}
+function hidePopup(){document.getElementById('popupOverlay').style.display='none';document.getElementById('popup').style.display='none';}
+function setNum(n){if(!selectedCell)return;board[selectedCell.r][selectedCell.c]=n;hidePopup();draw();check();}
+function hintCell(){if(!selectedCell)return;board[selectedCell.r][selectedCell.c]=solutionBoard[selectedCell.r][selectedCell.c];hidePopup();draw();check();}
+function check(){var r,c;for(r=0;r<9;r++){for(c=0;c<9;c++){if(board[r][c]!==solutionBoard[r][c])return;}}setInfo('Puzzle completed!');}
+function resetPuzzle(){board=clone(initialBoard);draw();setInfo('Puzzle reset');}
+function solvePuzzle(){board=clone(solutionBoard);draw();setInfo('Puzzle solved!');}
+loadLocalPuzzle();
 </script>
 </body>
 </html>

@@ -172,6 +172,7 @@ var pieces = {
 };
 */
 
+	/*
 var pieces = {
 
 K:'<svg viewBox="0 0 45 45"><g fill="#fff" stroke="#000" stroke-width="1.8"><path d="M22.5 4v8"/><path d="M18.5 8h8"/><path d="M16 16h13l-2 8h4l2 8H12l2-8h4z"/><path d="M14 37h17"/></g></svg>',
@@ -199,6 +200,33 @@ n:'<svg viewBox="0 0 45 45"><g fill="#000" stroke="#000" stroke-width="1.8"><pat
 
 p:'<svg viewBox="0 0 45 45"><g fill="#000" stroke="#000" stroke-width="1.8"><circle cx="22.5" cy="12" r="4"/><path d="M18 18h9l3 12H15z"/><path d="M14 37h17"/></g></svg>'
 
+}; */
+
+var pieces = {
+  K:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'white\' stroke=\'black\' stroke-width=\'2\'><path d=\'M22.5 4v8\'/><path d=\'M18 8h9\'/><path d=\'M16 16h13l-2 8h4l2 8H12l2-8h4z\'/><path d=\'M14 37h17\'/></g></svg>">',
+
+  Q:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'white\' stroke=\'black\' stroke-width=\'2\'><circle cx=\'10\' cy=\'12\' r=\'2\'/><circle cx=\'18\' cy=\'8\' r=\'2\'/><circle cx=\'27\' cy=\'8\' r=\'2\'/><circle cx=\'35\' cy=\'12\' r=\'2\'/><path d=\'M10 14l4 15h17l4-15\'/><path d=\'M14 29h17\'/><path d=\'M12 37h21\'/></g></svg>">',
+
+  R:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'white\' stroke=\'black\' stroke-width=\'2\'><path d=\'M13 9h4v4h3V9h5v4h3V9h4v6H13z\'/><path d=\'M16 15h13v15H16z\'/><path d=\'M12 37h21\'/></g></svg>">',
+
+  B:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'white\' stroke=\'black\' stroke-width=\'2\'><path d=\'M22.5 7c3 0 5 2 5 5 0 3-2 5-5 7 3 2 5 5 5 10H17c0-5 2-8 5-10-3-2-5-4-5-7 0-3 2-5 5-5z\'/><path d=\'M22.5 10v8\'/><path d=\'M12 37h21\'/></g></svg>">',
+
+  N:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'white\' stroke=\'black\' stroke-width=\'2\'><path d=\'M14 34h18l-2-8-3-10-7-6-4 4 5 5-4 15z\'/><circle cx=\'24\' cy=\'17\' r=\'1.5\' fill=\'black\'/><path d=\'M18 14h6\'/></g></svg>">',
+
+  P:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'white\' stroke=\'black\' stroke-width=\'2\'><circle cx=\'22.5\' cy=\'12\' r=\'4\'/><path d=\'M18 18h9l3 12H15z\'/><path d=\'M14 37h17\'/></g></svg>">',
+
+
+  k:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'black\' stroke=\'black\' stroke-width=\'2\'><path d=\'M22.5 4v8\'/><path d=\'M18 8h9\'/><path d=\'M16 16h13l-2 8h4l2 8H12l2-8h4z\'/><path d=\'M14 37h17\'/></g></svg>">',
+
+  q:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'black\' stroke=\'black\' stroke-width=\'2\'><circle cx=\'10\' cy=\'12\' r=\'2\'/><circle cx=\'18\' cy=\'8\' r=\'2\'/><circle cx=\'27\' cy=\'8\' r=\'2\'/><circle cx=\'35\' cy=\'12\' r=\'2\'/><path d=\'M10 14l4 15h17l4-15\'/><path d=\'M14 29h17\'/><path d=\'M12 37h21\'/></g></svg>">',
+
+  r:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'black\' stroke=\'black\' stroke-width=\'2\'><path d=\'M13 9h4v4h3V9h5v4h3V9h4v6H13z\'/><path d=\'M16 15h13v15H16z\'/><path d=\'M12 37h21\'/></g></svg>">',
+
+  b:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'black\' stroke=\'black\' stroke-width=\'2\'><path d=\'M22.5 7c3 0 5 2 5 5 0 3-2 5-5 7 3 2 5 5 5 10H17c0-5 2-8 5-10-3-2-5-4-5-7 0-3 2-5 5-5z\'/><path d=\'M22.5 10v8\' stroke=\'white\'/><path d=\'M12 37h21\'/></g></svg>">',
+
+  n:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'black\' stroke=\'black\' stroke-width=\'2\'><path d=\'M14 34h18l-2-8-3-10-7-6-4 4 5 5-4 15z\'/><circle cx=\'24\' cy=\'17\' r=\'1.5\' fill=\'white\'/><path d=\'M18 14h6\' stroke=\'white\'/></g></svg>">',
+
+  p:'<img src="data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 45 45\'><g fill=\'black\' stroke=\'black\' stroke-width=\'2\'><circle cx=\'22.5\' cy=\'12\' r=\'4\'/><path d=\'M18 18h9l3 12H15z\'/><path d=\'M14 37h17\'/></g></svg>">'
 };
 
 var board;

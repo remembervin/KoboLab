@@ -1,9 +1,175 @@
+<!DOCTYPE html>
 <html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku Lite v2</title>
+<style>
+body{font-family:Arial,sans-serif;text-align:center;background:#fff;color:#000;margin:8px}
+h2{margin:4px 0} #info{font-weight:bold;min-height:22px;margin:8px}
+button,select{padding:6px 8px;font-size:14px;border:1px solid #000;background:#f0f0f0}
+#controls{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin:10px}
+#board{width:414px;margin:0 auto 14px;border:3px solid #000;font-size:0;line-height:0;}
+.cell{display:inline-block;width:46px;height:46px;border:1px solid #999;box-sizing:border-box;vertical-align:top;text-align:center;line-height:46px;font-size:24px;font-weight:bold;cursor:pointer;user-select:none;}
+.fixed{background:#efefef}.selected{outline:4px solid #000;outline-offset:-4px}.conflict{background:#d0d0d0}.box-right{border-right:3px solid #000}.box-bottom{border-bottom:3px solid #000}
+#overlay{position:fixed;inset:0;background:rgba(255,255,255,.92);display:none;align-items:center;justify-content:center;z-index:1000}
+#popup{background:#fff;border:3px solid #000;padding:12px;width:250px;text-align:center;}
+#popup button{display:inline-block;width:68px;height:48px;margin:4px;font-size:22px;padding:4px;vertical-align:middle;}.full{width:68px !important;}
+</style>
+</head>
 <body>
-<div>
-<table border="1">
-<tr><td>1</td><td>2</td></tr>
-</table>
-</div>
+<h2>Sudoku Lite v2</h2>
+<div>Difficulty: <select id="difficulty"><option>easy</option><option selected>medium</option><option>hard</option></select></div>
+<div id="controls"><button onclick="loadLivePuzzle()">🌐 LIVE</button><button onclick="loadLocalPuzzle()">LOCAL</button><button onclick="resetPuzzle()">Reset</button><button onclick="solvePuzzle()">Solve</button></div>
+<div id="info"></div><div id="board"></div><div id="overlay"><div id="popup"></div></div>
+<script>
+const localPuzzles={
+easy:[
+'530070000600195000098000060800060003400803001700020006060000280000419005000080079',
+'000260701680070090190004500820100040004602900050003028009300074040050036703018000',
+'300200000000107000706030500070009080900020004010800050009040301000702000000008006',
+'200080300060070084030500209000105408000000000402706000301007040720040060004010003',
+'000000907000420180000705026100904000050000040000507009920108000034059000507000000',
+'030050040008010500460000012070502080000603000040109030250000098001020600080060020',
+'020810740700003100090002805009040087400208003160030200302700060005600008076051090',
+'100920000524010000000000070050008102000000000402700090060000000000030945000071006',
+'043080250600000000000001094900004070000608000010200003820500000000000005034090710',
+'480006902002008001900370060840010200003704100001060049020085007700900600609200018'
+],
+medium:[
+'000900002050123400030000160908000000070000090000000205091000050007439020400007000',
+'001900003900700160030005007050000009004302600200000070600100030042007006500006800',
+'000075400000000008080190000300001060000000034000068170204000603900000020530200000',
+'300000000005009000200504000020000700160000058704310600000890100000067080000005437',
+'000000080800701040040020030374000900000030000005000321090060010050208007010000000',
+'080020000040500320020309046600090004000640000900070003490106050051007080000030090',
+'005000006070009020000600108006080400040000030001090200304001000090300070700000500',
+'200170603050000100000006079000040700000801000009030000310400000007000040406052001',
+'000000000009805100051907420290401065000000000140508093026709580005103600000000000',
+'000030000080009120500001000030000507000706000106000030000600004097800050000040000'
+],
+hard:[
+'800000000003600000070090200050007000000045700000100030001000068008500010090000400',
+'000000012000000003002300000001090000000000080040000000000000000000700000000000000',
+'100007090030020008009600500005300900010080002600004000300000010040000007007000300',
+'000900800128006400070800060800430007500000009600079008090004010003600284001007000',
+'005300000800000020070010500400005300010070006003200080060500009004000030000009700',
+'000000907000420180000705026100904000050000040000507009920108000034059000507000000',
+'030000080009000500007509200700105008020090030900402001004207100002000800050000040',
+'000075400000000008080190000300001060000000034000068170204000603900000020530200000',
+'300000000005009000200504000020000700160000058704310600000890100000067080000005437',
+'000000010400000000020000000000050407008000300001090000300400200050100000000806000'
+]
+};
+let board=[],initialBoard=[],solutionBoard=[],selectedCell=null,localIndex={easy:0,medium:0,hard:0};
+const clone=g=>JSON.parse(JSON.stringify(g));
+function strToGrid(s){let g=[],i=0;for(let r=0;r<9;r++){g[r]=[];for(let c=0;c<9;c++)g[r][c]=parseInt(s[i++]);}return g;}
+function diff(){return document.getElementById('difficulty').value;}
+function setInfo(t){document.getElementById('info').textContent=t;}
+function findEmpty(g){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(g[r][c]===0)return[r,c];return null;}
+function safe(g,r,c,n){for(let i=0;i<9;i++)if(g[r][i]===n||g[i][c]===n)return false;let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if(g[rr][cc]===n)return false;return true;}
+function solve(g){let e=findEmpty(g);if(!e)return true;let r=e[0],c=e[1];for(let n=1;n<=9;n++){if(safe(g,r,c,n)){g[r][c]=n;if(solve(g))return true;g[r][c]=0;}}return false;}
+function loadGrid(g,msg){board=clone(g);initialBoard=clone(g);solutionBoard=clone(g);solve(solutionBoard);selectedCell=null;hidePopup();draw();setInfo(msg);}
+function loadLocalPuzzle(){let d=diff(),arr=localPuzzles[d],idx=localIndex[d]%arr.length;localIndex[d]++;loadGrid(strToGrid(arr[idx]),d+' local puzzle');}
+async function loadLivePuzzle(){let d=diff();setInfo('Fetching '+d+' online puzzle...');try{let res=await fetch('https://sudoku-api.vercel.app/api/dosuku');let data=await res.json();loadGrid(data.newboard.grids[0].value,d+' online puzzle');}catch(e){loadLocalPuzzle();setInfo('Online fetch failed — loaded '+d+' local puzzle');}}
+function resetPuzzle(){board=clone(initialBoard);hidePopup();draw();setInfo('Puzzle reset');}
+function solvePuzzle(){board=clone(solutionBoard);hidePopup();draw();setInfo('Puzzle solved!');}
+function fixed(r,c){return initialBoard[r][c]!==0;}
+function conflict(r,c){let v=board[r][c];if(!v)return false;for(let i=0;i<9;i++){if(i!==c&&board[r][i]===v)return true;if(i!==r&&board[i][c]===v)return true;}let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if((rr!==r||cc!==c)&&board[rr][cc]===v)return true;return false;}
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sudoku Lite v2</title>
+<style>
+body{font-family:Arial,sans-serif;text-align:center;background:#fff;color:#000;margin:8px}
+h2{margin:4px 0} #info{font-weight:bold;min-height:22px;margin:8px}
+button,select{padding:6px 8px;font-size:14px;border:1px solid #000;background:#f0f0f0}
+#controls{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;margin:10px}
+#board{width:414px;margin:0 auto 14px;border:3px solid #000;font-size:0;line-height:0;}
+.cell{display:inline-block;width:46px;height:46px;border:1px solid #999;box-sizing:border-box;vertical-align:top;text-align:center;line-height:46px;font-size:24px;font-weight:bold;cursor:pointer;user-select:none;}
+.fixed{background:#efefef}.selected{outline:4px solid #000;outline-offset:-4px}.conflict{background:#d0d0d0}.box-right{border-right:3px solid #000}.box-bottom{border-bottom:3px solid #000}
+#overlay{position:fixed;inset:0;background:rgba(255,255,255,.92);display:none;align-items:center;justify-content:center;z-index:1000}
+#popup{background:#fff;border:3px solid #000;padding:12px;width:250px;text-align:center;}
+#popup button{display:inline-block;width:68px;height:48px;margin:4px;font-size:22px;padding:4px;vertical-align:middle;}.full{width:68px !important;}
+</style>
+</head>
+<body>
+<h2>Sudoku Lite v2</h2>
+<div>Difficulty: <select id="difficulty"><option>easy</option><option selected>medium</option><option>hard</option></select></div>
+<div id="controls"><button onclick="loadLivePuzzle()">🌐 LIVE</button><button onclick="loadLocalPuzzle()">LOCAL</button><button onclick="resetPuzzle()">Reset</button><button onclick="solvePuzzle()">Solve</button></div>
+<div id="info"></div><div id="board"></div><div id="overlay"><div id="popup"></div></div>
+<script>
+const localPuzzles={
+easy:[
+'530070000600195000098000060800060003400803001700020006060000280000419005000080079',
+'000260701680070090190004500820100040004602900050003028009300074040050036703018000',
+'300200000000107000706030500070009080900020004010800050009040301000702000000008006',
+'200080300060070084030500209000105408000000000402706000301007040720040060004010003',
+'000000907000420180000705026100904000050000040000507009920108000034059000507000000',
+'030050040008010500460000012070502080000603000040109030250000098001020600080060020',
+'020810740700003100090002805009040087400208003160030200302700060005600008076051090',
+'100920000524010000000000070050008102000000000402700090060000000000030945000071006',
+'043080250600000000000001094900004070000608000010200003820500000000000005034090710',
+'480006902002008001900370060840010200003704100001060049020085007700900600609200018'
+],
+medium:[
+'000900002050123400030000160908000000070000090000000205091000050007439020400007000',
+'001900003900700160030005007050000009004302600200000070600100030042007006500006800',
+'000075400000000008080190000300001060000000034000068170204000603900000020530200000',
+'300000000005009000200504000020000700160000058704310600000890100000067080000005437',
+'000000080800701040040020030374000900000030000005000321090060010050208007010000000',
+'080020000040500320020309046600090004000640000900070003490106050051007080000030090',
+'005000006070009020000600108006080400040000030001090200304001000090300070700000500',
+'200170603050000100000006079000040700000801000009030000310400000007000040406052001',
+'000000000009805100051907420290401065000000000140508093026709580005103600000000000',
+'000030000080009120500001000030000507000706000106000030000600004097800050000040000'
+],
+hard:[
+'800000000003600000070090200050007000000045700000100030001000068008500010090000400',
+'000000012000000003002300000001090000000000080040000000000000000000700000000000000',
+'100007090030020008009600500005300900010080002600004000300000010040000007007000300',
+'000900800128006400070800060800430007500000009600079008090004010003600284001007000',
+'005300000800000020070010500400005300010070006003200080060500009004000030000009700',
+'000000907000420180000705026100904000050000040000507009920108000034059000507000000',
+'030000080009000500007509200700105008020090030900402001004207100002000800050000040',
+'000075400000000008080190000300001060000000034000068170204000603900000020530200000',
+'300000000005009000200504000020000700160000058704310600000890100000067080000005437',
+'000000010400000000020000000000050407008000300001090000300400200050100000000806000'
+]
+};
+let board=[],initialBoard=[],solutionBoard=[],selectedCell=null,localIndex={easy:0,medium:0,hard:0};
+const clone=g=>JSON.parse(JSON.stringify(g));
+function strToGrid(s){let g=[],i=0;for(let r=0;r<9;r++){g[r]=[];for(let c=0;c<9;c++)g[r][c]=parseInt(s[i++]);}return g;}
+function diff(){return document.getElementById('difficulty').value;}
+function setInfo(t){document.getElementById('info').textContent=t;}
+function findEmpty(g){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(g[r][c]===0)return[r,c];return null;}
+function safe(g,r,c,n){for(let i=0;i<9;i++)if(g[r][i]===n||g[i][c]===n)return false;let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if(g[rr][cc]===n)return false;return true;}
+function solve(g){let e=findEmpty(g);if(!e)return true;let r=e[0],c=e[1];for(let n=1;n<=9;n++){if(safe(g,r,c,n)){g[r][c]=n;if(solve(g))return true;g[r][c]=0;}}return false;}
+function loadGrid(g,msg){board=clone(g);initialBoard=clone(g);solutionBoard=clone(g);solve(solutionBoard);selectedCell=null;hidePopup();draw();setInfo(msg);}
+function loadLocalPuzzle(){let d=diff(),arr=localPuzzles[d],idx=localIndex[d]%arr.length;localIndex[d]++;loadGrid(strToGrid(arr[idx]),d+' local puzzle');}
+async function loadLivePuzzle(){let d=diff();setInfo('Fetching '+d+' online puzzle...');try{let res=await fetch('https://sudoku-api.vercel.app/api/dosuku');let data=await res.json();loadGrid(data.newboard.grids[0].value,d+' online puzzle');}catch(e){loadLocalPuzzle();setInfo('Online fetch failed — loaded '+d+' local puzzle');}}
+function resetPuzzle(){board=clone(initialBoard);hidePopup();draw();setInfo('Puzzle reset');}
+function solvePuzzle(){board=clone(solutionBoard);hidePopup();draw();setInfo('Puzzle solved!');}
+function fixed(r,c){return initialBoard[r][c]!==0;}
+function conflict(r,c){let v=board[r][c];if(!v)return false;for(let i=0;i<9;i++){if(i!==c&&board[r][i]===v)return true;if(i!==r&&board[i][c]===v)return true;}let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if((rr!==r||cc!==c)&&board[rr][cc]===v)return true;return false;}
+function draw(){let b=document.getElementById('board');b.innerHTML='';let table=document.createElement('table');table.id='boardTable';table.style.borderCollapse='collapse';table.style.margin='0 auto';table.style.border='3px solid black';for(let r=0;r<9;r++){let tr=document.createElement('tr');for(let c=0;c<9;c++){let td=document.createElement('td');td.style.width='46px';td.style.height='46px';td.style.border='1px solid #999';td.style.textAlign='center';td.style.verticalAlign='middle';td.style.fontSize='24px';td.style.fontWeight='bold';if(c===2||c===5) td.style.borderRight='3px solid black';if(r===2||r===5) td.style.borderBottom='3px solid black';if(fixed(r,c)) td.style.background='#efefef';if(conflict(r,c)) td.style.background='#d0d0d0';if(selectedCell&&selectedCell.r===r&&selectedCell.c===c) td.style.outline='4px solid black';td.innerHTML=board[r][c]||'&nbsp;';td.onclick=(function(rr,cc){return function(){if(fixed(rr,cc)) return;selectedCell={r:rr,c:cc};draw();showPopup();};})(r,c);tr.appendChild(td);}table.appendChild(tr);}b.appendChild(table);} 
+function showPopup(){let p=document.getElementById('popup');p.innerHTML='';for(let i=1;i<=9;i++){let btn=document.createElement('button');btn.textContent=i;btn.onclick=()=>setNum(i);p.appendChild(btn);}let clear=document.createElement('button');clear.textContent='Clr';clear.style.fontSize='14px';clear.style.padding='6px';clear.onclick=()=>setNum(0);p.appendChild(clear);let cancel=document.createElement('button');cancel.textContent='✕';cancel.style.fontSize='16px';cancel.style.padding='6px';cancel.onclick=hidePopup;p.appendChild(cancel);let hint=document.createElement('button');hint.textContent='?!';hint.style.fontSize='16px';hint.style.padding='6px';hint.onclick=hintCell;p.appendChild(hint);document.getElementById('overlay').style.display='flex';}
+function hidePopup(){document.getElementById('overlay').style.display='none';}
+function setNum(n){if(!selectedCell)return;board[selectedCell.r][selectedCell.c]=n;hidePopup();draw();check();}
+function hintCell(){if(!selectedCell)return;board[selectedCell.r][selectedCell.c]=solutionBoard[selectedCell.r][selectedCell.c];hidePopup();draw();check();setInfo('Hint revealed');}
+function check(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(board[r][c]!==solutionBoard[r][c])return;setInfo('🎉 '+diff()+' puzzle completed!');}
+loadLocalPuzzle();
+</script>
+</body>
+</html>
+function showPopup(){let p=document.getElementById('popup');p.innerHTML='';for(let i=1;i<=9;i++){let btn=document.createElement('button');btn.textContent=i;btn.onclick=()=>setNum(i);p.appendChild(btn);}let clear=document.createElement('button');clear.textContent='Clr';clear.style.fontSize='14px';clear.style.padding='6px';clear.onclick=()=>setNum(0);p.appendChild(clear);let cancel=document.createElement('button');cancel.textContent='✕';cancel.style.fontSize='16px';cancel.style.padding='6px';cancel.onclick=hidePopup;p.appendChild(cancel);let hint=document.createElement('button');hint.textContent='?!';hint.style.fontSize='16px';hint.style.padding='6px';hint.onclick=hintCell;p.appendChild(hint);document.getElementById('overlay').style.display='flex';}
+function hidePopup(){document.getElementById('overlay').style.display='none';}
+function setNum(n){if(!selectedCell)return;board[selectedCell.r][selectedCell.c]=n;hidePopup();draw();check();}
+function hintCell(){if(!selectedCell)return;board[selectedCell.r][selectedCell.c]=solutionBoard[selectedCell.r][selectedCell.c];hidePopup();draw();check();setInfo('Hint revealed');}
+function check(){for(let r=0;r<9;r++)for(let c=0;c<9;c++)if(board[r][c]!==solutionBoard[r][c])return;setInfo('🎉 '+diff()+' puzzle completed!');}
+loadLocalPuzzle();
+</script>
 </body>
 </html>

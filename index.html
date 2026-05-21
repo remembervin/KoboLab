@@ -77,8 +77,16 @@ function solvePuzzle(){board=clone(solutionBoard);hidePopup();draw();setInfo('Pu
 function fixed(r,c){return initialBoard[r][c]!==0;}
 function conflict(r,c){let v=board[r][c];if(!v)return false;for(let i=0;i<9;i++){if(i!==c&&board[r][i]===v)return true;if(i!==r&&board[i][c]===v)return true;}let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if((rr!==r||cc!==c)&&board[rr][cc]===v)return true;return false;}
 function draw() {
-  document.getElementById('board').innerHTML =
-    '<table border=\"1\"><tr><td>1</td><td>2</td></tr></table>';
+  let html='<table border=\"1\">';
+  for(var r=0;r<9;r++){
+    html+='<tr>';
+    for(var c=0;c<9;c++){
+      html+='<td>1</td>';
+    }
+    html+='</tr>';
+  }
+  html+='</table>';
+  document.getElementById('board').innerHTML=html;
 }
 function showPopup(){let p=document.getElementById('popup');p.innerHTML='';for(let i=1;i<=9;i++){let btn=document.createElement('button');btn.textContent=i;btn.onclick=()=>setNum(i);p.appendChild(btn);}let clear=document.createElement('button');clear.textContent='Clr';clear.style.fontSize='14px';clear.style.padding='6px';clear.onclick=()=>setNum(0);p.appendChild(clear);let cancel=document.createElement('button');cancel.textContent='✕';cancel.style.fontSize='16px';cancel.style.padding='6px';cancel.onclick=hidePopup;p.appendChild(cancel);let hint=document.createElement('button');hint.textContent='?!';hint.style.fontSize='16px';hint.style.padding='6px';hint.onclick=hintCell;p.appendChild(hint);document.getElementById('overlay').style.display='flex';}
 function hidePopup(){document.getElementById('overlay').style.display='none';}

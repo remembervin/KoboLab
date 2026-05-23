@@ -176,18 +176,29 @@ Black:
 <script>
 
 var pieces = {
-  r:'♜',
-  n:'♞',
-  b:'♝',
-  q:'♛',
-  k:'♚',
-  p:'♟',
-  R:'♖',
-  N:'♘',
-  B:'♗',
-  Q:'♕',
-  K:'♔',
-  P:'♙'
+
+K:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="white" stroke="black" stroke-width="2"><line x1="30" y1="4" x2="30" y2="17" stroke-width="3"/><line x1="22" y1="10" x2="38" y2="10" stroke-width="3"/><path d="M20 20 L40 20 L37 30 L43 48 L17 48 L23 30 Z"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+k:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="black" stroke="black" stroke-width="2"><line x1="30" y1="4" x2="30" y2="17" stroke-width="3"/><line x1="22" y1="10" x2="38" y2="10" stroke-width="3"/><path d="M20 20 L40 20 L37 30 L43 48 L17 48 L23 30 Z"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+Q:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="white" stroke="black" stroke-width="2"><path d="M17 18 L43 18 L40 32 L20 32 Z"/><rect x="19" y="34" width="22" height="12"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+q:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="black" stroke="black" stroke-width="2"><path d="M17 18 L43 18 L40 32 L20 32 Z"/><rect x="19" y="34" width="22" height="12"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+R:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="white" stroke="black" stroke-width="2"><rect x="16" y="12" width="8" height="6"/><rect x="26" y="12" width="8" height="6"/><rect x="36" y="12" width="8" height="6"/><rect x="16" y="18" width="28" height="6"/><rect x="20" y="24" width="20" height="22"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+r:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="black" stroke="black" stroke-width="2"><rect x="16" y="12" width="8" height="6"/><rect x="26" y="12" width="8" height="6"/><rect x="36" y="12" width="8" height="6"/><rect x="16" y="18" width="28" height="6"/><rect x="20" y="24" width="20" height="22"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+B:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="white" stroke="black" stroke-width="2"><path d="M30 6 L34 11 C38 15,38 22,34 27 L36 31 L24 31 L26 27 C22 22,22 15,26 11 Z"/><path d="M22 33 L38 33 L42 47 L18 47 Z"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+b:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="black" stroke="black" stroke-width="2"><path d="M30 6 L34 11 C38 15,38 22,34 27 L36 31 L24 31 L26 27 C22 22,22 15,26 11 Z"/><path d="M22 33 L38 33 L42 47 L18 47 Z"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+N:'<svg viewBox="0 0 60 60" width="30" height="30"><text x="15" y="38" font-size="28">♘</text></svg>',
+n:'<svg viewBox="0 0 60 60" width="30" height="30"><text x="15" y="38" font-size="28">♞</text></svg>',
+
+P:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="white" stroke="black" stroke-width="2"><circle cx="30" cy="15" r="7"/><path d="M24 24 L36 24 L38 29 L36 33 L40 46 L20 46 L24 33 L22 29 Z"/><rect x="14" y="50" width="32" height="4"/></g></svg>',
+
+p:'<svg viewBox="0 0 60 60" width="30" height="30"><g fill="black" stroke="black" stroke-width="2"><circle cx="30" cy="15" r="7"/><path d="M24 24 L36 24 L38 29 L36 33 L40 46 L20 46 L24 33 L22 29 Z"/><rect x="14" y="50" width="32" height="4"/></g></svg>'
 };
 
 var board = [];

@@ -422,10 +422,84 @@ function parseSquare(s) {
   };
 }
 
+function sameColor(a,b){
+  if(!a || !b) return false;
+  return isWhitePiece(a) === isWhitePiece(b);
+}
+
+function isBasicLegalMove(from,to){
+
+  var p = board[from.r][from.c];
+  if(!p) return false;
+
+  if(sameColor(p, board[to.r][to.c])) return false;
+
+  var dr = to.r - from.r;
+  var dc = to.c - from.c;
+  var adr = Math.abs(dr);
+  var adc = Math.abs(dc);
+
+  var piece = p.toLowerCase();
+
+  if(piece === 'p'){
+    var dir = isWhitePiece(p) ? -1 : 1;
+
+    if(dc===0 && dr===dir && !board[to.r][to.c]) return true;
+
+    if(adc===1 && dr===dir && board[to.r][to.c]) return true;
+
+    return false;
+  }
+
+  if(piece === 'n'){
+    return (adr===2 && adc===1) || (adr===1 && adc===2);
+  }
+
+  if(piece === 'k'){
+    return adr<=1 && adc<=1;
+  }
+
+  if(piece === 'b'){
+    return adr===adc;
+  }
+
+  if(piece === 'r'){
+    return dr===0 || dc===0;
+  }
+
+  if(piece === 'q'){
+    return adr===adc || dr===0 || dc===0;
+  }
+
+  return false;
+}
+
+function getLegalMoves(from){
+
+  var out = [];
+  var r,c;
+
+  for(r=0;r<8;r++){
+    for(c=0;c<8;c++){
+      if(isBasicLegalMove(from,{r:r,c:c})){
+        out.push({r:r,c:c});
+      }
+    }
+  }
+
+  return out;
+}
+	
 function draw() {
 
   var html = '<table>';
   var vr, vc, r, c, cls, p;
+  var legalMoves = [];
+  var m;
+
+  if (selected) {
+    legalMoves = getLegalMoves(selected);
+  }
 
   for (vr = 0; vr < 8; vr++) {
 
@@ -451,14 +525,25 @@ function draw() {
         }
       }
 
+      for (m = 0; m < legalMoves.length; m++) {
+        if (
+          legalMoves[m].r === r &&
+          legalMoves[m].c === c
+        ) {
+          cls += ' move';
+          break;
+        }
+      }
+
       html += '<td class="' + cls + '" onclick="handleTap(' + r + ',' + c + ')">';
 
       p = board[r][c];
+
       if (p) {
         if (isWhitePiece(p)) {
-          html += '<span class="whitePiece">' + pieces[p] + '</span>';
+          html += pieces[p];
         } else {
-          html += '<span class="blackPiece">' + pieces[p] + '</span>';
+          html += pieces[p];
         }
       }
 
@@ -482,6 +567,7 @@ function draw() {
   }
   else {
     msg = (turn === 'white' ? 'White' : 'Black') + ' to play';
+
     if (puzzleGoal) {
       msg += ' | ' + puzzleGoal;
     }
@@ -490,33 +576,45 @@ function draw() {
   document.getElementById('info').innerHTML = msg;
 }
 
-function handleTap(r, c) {
+function handleTap(r,c){
 
-  if (setupMode) {
-    board[r][c] = selectedPiece;
+  if(setupMode){
+    board[r][c]=selectedPiece;
     draw();
     return;
   }
 
-  if (solutionMode) {
+  if(solutionMode){
     playSolutionMove();
     return;
   }
 
-  if (!selected) {
+  if(!selected){
 
-    if (!board[r][c]) return;
+    if(!board[r][c]) return;
 
-    if (turn === 'white' && !isWhitePiece(board[r][c])) return;
-    if (turn === 'black' && isWhitePiece(board[r][c])) return;
+    if(turn==='white' && !isWhitePiece(board[r][c])) return;
+    if(turn==='black' && isWhitePiece(board[r][c])) return;
 
-    selected = { r:r, c:c };
+    selected={r:r,c:c};
     draw();
     return;
   }
 
-  attemptMove(selected, { r:r, c:c });
-  selected = null;
+  if(selected.r===r && selected.c===c){
+    selected=null;
+    draw();
+    return;
+  }
+
+  if(!isBasicLegalMove(selected,{r:r,c:c})){
+    selected=null;
+    draw();
+    return;
+  }
+
+  attemptMove(selected,{r:r,c:c});
+  selected=null;
   draw();
 }
 

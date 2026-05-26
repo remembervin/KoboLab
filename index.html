@@ -538,34 +538,47 @@ function makeMove(from, to) {
 
 function attemptMove(from, to) {
 
+  if (solutionMoves.length === 0) {
+    makeMove(from, to);
+    return;
+  }
+
+  if (solutionIndex >= solutionMoves.length) {
+    return;
+  }
+
+  var expected = solutionMoves[solutionIndex];
+  var ef = parseSquare(expected.substring(0,2));
+  var et = parseSquare(expected.substring(2,4));
+
   if (
-    solutionMoves.length > 0 &&
-    solutionIndex < solutionMoves.length
+    from.r !== ef.r ||
+    from.c !== ef.c ||
+    to.r !== et.r ||
+    to.c !== et.c
   ) {
-
-    var exp = solutionMoves[solutionIndex];
-    var ef = parseSquare(exp.substring(0,2));
-    var et = parseSquare(exp.substring(2,4));
-
-    if (
-      from.r === ef.r &&
-      from.c === ef.c &&
-      to.r === et.r &&
-      to.c === et.c
-    ) {
-
-      makeMove(from, to);
-      solutionIndex++;
-
-      if (solutionIndex >= solutionMoves.length) {
-        puzzleCompleted = true;
-      }
-    }
-
     return;
   }
 
   makeMove(from, to);
+  solutionIndex++;
+
+  if (solutionIndex >= solutionMoves.length) {
+    puzzleCompleted = true;
+    draw();
+    return;
+  }
+
+  var reply = solutionMoves[solutionIndex];
+  var rf = parseSquare(reply.substring(0,2));
+  var rt = parseSquare(reply.substring(2,4));
+
+  makeMove(rf, rt);
+  solutionIndex++;
+
+  if (solutionIndex >= solutionMoves.length) {
+    puzzleCompleted = true;
+  }
 }
 
 function prevMove() {
@@ -587,6 +600,11 @@ function nextMove() {
 
   makeMove(from, to);
   solutionIndex++;
+
+  if (solutionIndex >= solutionMoves.length) {
+    puzzleCompleted = true;
+  }
+
   draw();
 }
 
@@ -615,6 +633,12 @@ function startSolutionMode() {
 }
 
 function playSolutionMove() {
+
+  if (solutionIndex >= solutionMoves.length) {
+    solutionMode = false;
+    return;
+  }
+
   nextMove();
 }
 
